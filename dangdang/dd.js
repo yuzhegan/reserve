@@ -1,5 +1,4 @@
 var gyx;
-var window = global;
 (function(t) {
     function e(e) {
         for (var a, i, o = e[0], c = e[1], l = e[2], d = 0, p = []; d < o.length; d++)
@@ -6741,7 +6740,10 @@ var window = global;
                     }
                 }
             }
-					var X = null;
+            var J, K = "__proto__"in {}, X = "undefined" !== typeof window, Y = "undefined" !== typeof WXEnvironment && !!WXEnvironment.platform, Q = Y && WXEnvironment.platform.toLowerCase(), Z = X && window.navigator.userAgent.toLowerCase(), tt = Z && /msie|trident/.test(Z), et = Z && Z.indexOf("msie 9.0") > 0, rt = Z && Z.indexOf("edge/") > 0, nt = (Z && Z.indexOf("android"),
+            Z && /iphone|ipad|ipod|ios/.test(Z) || "ios" === Q), ot = (Z && /chrome\/\d+/.test(Z),
+            Z && /phantomjs/.test(Z),
+            Z && Z.match(/firefox\/(\d+)/)), it = {}.watch, at = !1;
             if (X)
                 try {
                     var ct = {};
@@ -22558,5 +22560,4 @@ var t = {
     "situation": "login"
 }
 var _G = G(t)
-console.log(_G)
 
