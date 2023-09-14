@@ -1,3 +1,4 @@
+
 var gyx;
 (function(t) {
     function e(e) {
@@ -2857,7 +2858,7 @@ var gyx;
           , Gt = Xt.exports
           , Qt = n("13eb")
           , Zt = n.n(Qt);
-       // document.domain = "dangdang.com";
+        // document.domain = "dangdang.com";
         var te = {
             name: "Home",
             components: {
@@ -3108,8 +3109,6 @@ var gyx;
         n("ca66")
     }
 });
-
-
 
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([["chunk-vendors"], {
     "00b4": function(t, e, r) {
@@ -12814,7 +12813,10 @@ var gyx;
                 delete t.headers[e]
             }
             ));
-            var e = t.adapter || a.adapter;
+            
+              
+            let e = t.adapter || a.adapter;
+            
             return e(t).then((function(e) {
                 return c(t),
                 e.data = o.call(t, e.data, e.headers, t.transformResponse),
@@ -22447,14 +22449,9 @@ var gyx;
     }
 }]);
 
-
-
-
-
-
 var R = gyx("2f62")
-V = gyx("4328")
-, N = gyx.n(V)
+V = gyx("4328"),
+N = gyx.n(V)
 q = gyx("852e")
 A = gyx.n(q)
 
@@ -22511,53 +22508,57 @@ var B = 10
     modules: {}
 })
 function G(t) {
-	var e = {
-		t: (new Date).getTime(),
-		ct: "pc",
-		permanent_id: A.a.get("__permanent_id"),
-		requestId: z.state.requestId
-	};
-	e = Object.assign(e, t);
-	var n = {};
-	Object.keys(e).sort().map((function(t) {
-		("sign" != t && e[t] || 0 === e[t]) && (n[t] = e[t])
-	}
-	));
-	var a = N.a.stringify(n);
-	return a = decodeURIComponent(a),
-	console.log("str:", a),
-	a = Y(a),
-	console.log("md5:", a),
-	console.log("rankey:", z.state.rankey),
-	a = J(a, z.state.rankey),
-	console.log("sign:", a),
-	e.sign = a,
-	e
-	return e
+    var e = {
+        t: (new Date).getTime(),
+        ct: "pc",
+        permanent_id: A.a.get("__permanent_id"),
+        requestId: z.state.requestId
+    };
+    e = Object.assign(e, t);
+    var n = {};
+    Object.keys(e).sort().map((function(t) {
+        ("sign" != t && e[t] || 0 === e[t]) && (n[t] = e[t])
+    }
+    ));
+    var a = N.a.stringify(n);
+    return a = decodeURIComponent(a),
+    console.log("str:", a),
+    a = Y(a),
+    console.log("md5:", a),
+    console.log("rankey:", z.state.rankey),
+    a = J(a, z.state.rankey),
+    console.log("sign:", a),
+    e.sign = a,
+    e
+    return e
 }
 
 D = (gyx("25f0"),
-        gyx("3452"))
-          , U = gyx.n(D)
-          , H = U.a.enc.Utf8.parse("0102030405060708")
-          , J = function(t, e) {
-            e = U.a.enc.Utf8.parse(e);
-            var n = U.a.enc.Utf8.parse(t);
-            return U.a.AES.encrypt(n, e, {
-                iv: H
-            }).toString()
-        }
-          , Y = function(t) {
-            return U.a.MD5(t).toString()
-        }
-          , L = function(t) {
-            var e = U.a.enc.Base64.parse(t)
-              , n = e.toString(U.a.enc.Utf8);
-            return n
-        };
+gyx("3452")),
+U = gyx.n(D),
+H = U.a.enc.Utf8.parse("0102030405060708"),
+J = function(t, e) {
+    e = U.a.enc.Utf8.parse(e);
+    var n = U.a.enc.Utf8.parse(t);
+    return U.a.AES.encrypt(n, e, {
+        iv: H
+    }).toString()
+}
+,
+Y = function(t) {
+    return U.a.MD5(t).toString()
+}
+,
+L = function(t) {
+    var e = U.a.enc.Base64.parse(t)
+      , n = e.toString(U.a.enc.Utf8);
+    return n
+}
+;
 
 var t = {
     "situation": "login"
 }
 var _G = G(t)
 
+return _G
