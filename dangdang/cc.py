@@ -28,117 +28,76 @@ class dangdang():
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"Windows"',
         }
+
         self.session = requests.Session()
         self.session.headers.update(self.headers)
-        self.data = {
-            # 't': '1694423072381',
-            'ct': 'pc',
-            'permanent_id': "20230911142218827323294417821307852",
-            'requestId': "2309121434209380Iu3zZD_50e1",
-        }
-        # self.GenerateSign(ifbg=False)
-        self.IsSlide()
-        # self.GenerateSign(t = '1694500674507',ifbg=True)
-        requesid, randkey = self.GetRandomKey()
-        self.GetSildVerifyCode(requesid,randkey)
-        
+        self.permanent_id = self.get_permanent_id()
+        # print(self.permanent_id)
+        self.time_stamp = self.get_time_stamp()
+        self.requestId, self.rankey = self.get_randkey()
+        # self.GetSlidingVerifyCode()
+        self.sildeImg, self.bgImg, self.encryptKey, self.y = self.GetSlidingVerifyCode()
+        print(self.sildeImg, self.bgImg, self.encryptKey, self.y)
 
-    # md5加密
+    # 第一步获取__permanent_id
 
-    def encryptMd5(self, str):
-        import hashlib
-        m = hashlib.md5()
-        m.update(str.encode('utf-8'))
-        return m.hexdigest()
-    # AES加密
-
-    def encryptAES(self, string, randomkey, iv):
-        with open("./dangdang/a.js", 'r', encoding='utf-8') as f:
+    def get_permanent_id(self):
+        with open('./dangdang/__permanent_id.js', 'r', encoding='utf-8') as f:
             js = f.read()
-        jscode = execjs.compile(js)
-        sign = jscode.call('GenAesString', string, randomkey, iv)
-        return sign
+        ctx = execjs.compile(js)
+        __permanent_id = ctx.call('createPermanentID')
+        return __permanent_id
+    # 获取时间戳
 
-    def GenerateSign(self, t, randkey, ifbg=False):
-        if t:
-            t = t
-        else:
-            t = str(int(time.time()*1000))
-        self.data['t'] = t
-        if ifbg:
-            a = "ct=" + self.data["ct"] + "&" + "permanent_id=" + self.data["permanent_id"] + \
-                "&" + "requestId=" + self.data["requestId"] + \
-                "&situation=login&" + "t=" + str(self.data["t"])
-        else:
-            a = "ct=" + self.data["ct"] + "&" + "permanent_id=" + self.data["permanent_id"] + \
-                "&" + "requestId=" + \
-                self.data["requestId"] + "&" + "t=" + str(self.data["t"])
-        print(a)
-        md5a = self.encryptMd5(a)
-        print(md5a)
-        if randkey:
-            randkey = randkey
-        else:
-            randkey = "Lyi8ARQhISYjbnl0"
-        iv = '0102030405060708'
-        sign = self.encryptAES(md5a, randkey, iv)
-        print(sign)
-        return sign
+    def get_time_stamp(self):
+        return str(int(time.time()*1000))
+    # 第二步 获取randkey, requestid, /getRankey
 
-    def IsSlide(self):
+    def get_randkey(self):
+        a = 'ct=pc&permanent_id={}&t={}'.format(
+            self.permanent_id, self.time_stamp)
+        with open('./dangdang/dd-AES.js', 'r', encoding='utf-8') as f:
+            js = f.read()
+        ctx = execjs.compile(js)
+        sign = ctx.call('AesEncrypt', a, '')
+        # print(sign)
         data = {
-            # 't': '1694495768902',
+            't': self.time_stamp,
             'ct': 'pc',
-            'permanent_id': '20230911142218827323294417821307852',
-            'requestId': '2309121304209620jk9OfC_676c',
-            'sign': 'eo0fr5Fx098/yS7ogjhlKuN0RPmHlcEScKrIhRIJFnxKv3rr7IDRW0HJwFYviUO4'
+            'permanent_id': self.permanent_id,
+            'requestId': '',
+            'sign': sign
         }
-        t = str(int(time.time()*1000))
-        data['t'] = t
-        sign = self.GenerateSign('','', ifbg=False)
-        print(sign)
-        response = self.session.post(
-            'https://login.dangdang.com/api/customer/loginapi/isShowSlide', data=data).json()
-        print(response)
 
-    def GetSildVerifyCode(self, requestId, randkey):
+        response = self.session.post('https://login.dangdang.com/api/customer/loginapi/getRankey',
+                                     data=data)
+        return response.json()['requestId'], response.json()['rankey']
+    # 第三步 获取图片验证码接口 /loginapi/getSlidingVerifyCode，图片验证码接口
+    # 需要两张图片，一张是滑块，一张是背景，encryptKey，用于后面point_json AES加密的key, ‘y’用于后面point_json 需要被加密的参数
+
+    def GetSlidingVerifyCode(self):
+        timestamp = self.get_time_stamp()
+        a = 'ct=pc&permanent_id={}&requestId={}&situation=login&t={}'.format(
+            self.permanent_id, self.requestId, timestamp)
+        # print(a)
+        with open('./dangdang/dd-AES.js', 'r', encoding='utf-8') as f:
+            js = f.read()
+        ctx = execjs.compile(js)
+        sign = ctx.call('AesEncrypt', a, self.rankey)
+        # print(sign)
         data = {
-            # 't': '1694495769595',
+            't': timestamp,
             'ct': 'pc',
-            'permanent_id': '20230911142218827323294417821307852',
-            'requestId': '2309121304209620jk9OfC_676c',
+            'permanent_id': self.permanent_id,
+            'requestId': self.requestId,
             'situation': 'login',
-            # 'sign': 'YLuqsWIJYrxrArHylpkWH5mkQ7kE1NDHOmcGTuPTsEQ0MWwT+aN9CaQQHl6mKfNP'
+            'sign': sign
         }
-        if requestId:
-            data['requestId'] = requestId
+        response = self.session.post('https://login.dangdang.com/api/customer/loginapi/getSlidingVerifyCode',
+                        data=data)
+        print(response.json())
+        return response.json()['data']['slideImg'], response.json()['data']['bgImg'], response.json()['data']['encryptKey'], response.json()['data']['y']
 
-
-        t = str(int(time.time()*1000))
-        data['t'] = t
-        sign = self.GenerateSign('',randkey, ifbg=True)
-        print(sign)
-        data['sign'] = sign
-        response = self.session.post(
-            'https://login.dangdang.com/api/customer/loginapi/getSlidingVerifyCode', data=data).json()
-        print(response)
-
-    def GetRandomKey(self):
-        data = {
-            # 't': '1694496861834',
-            'ct': 'pc',
-            'permanent_id': '20230911142218827323294417821307852',
-            'requestId': '2309121304209620jk9OfC_676c',
-            # 'sign': 'bCSUTL+s9SVO21wlzWSjG8gc8CU5cefT0QPnDipbBwUdIsdt6ON8MuJaTyn3u84f'
-        }
-        t = str(int(time.time()*1000))
-        data['t'] = t
-        response = requests.post(
-            'https://login.dangdang.com/api/customer/loginapi/getRankey',data=data).json()
-        requestid = response['requestId']
-        rankey = response['rankey']
-        return requestid, rankey
-        # print(response)
 
 if __name__ == "__main__":
     a = dangdang()

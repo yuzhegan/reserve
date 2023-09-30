@@ -1,6 +1,4 @@
-var gyx;
-var ggx;
-
+;;;;
 (function (t) {
     function e(e) {
         for (var a, i, o = e[0], c = e[1], l = e[2], d = 0, p = []; d < o.length; d++)
@@ -31,7 +29,7 @@ var ggx;
             app: 0
         }
         , s = [];
-    gyx = i;
+
     function i(e) {
         //console.log(e)
         if (a[e])
@@ -1481,6 +1479,7 @@ var ggx;
                                                     t.commit("setRequestId", r),
                                                     B = 10) : (B--,
                                                         t.dispatch("setRankey"));
+                                            window.gyx = r;
                                         case 9:
                                         case "end":
                                             return e.stop()
@@ -1493,7 +1492,7 @@ var ggx;
                 },
                 modules: {}
             })
-        var ggx = z
+        
             , D = (n("25f0"),
                 n("3452"))
             , U = n.n(D)
@@ -1513,6 +1512,7 @@ var ggx;
                     , n = e.toString(U.a.enc.Utf8);
                 return n
             };
+        window.ggx = z;
         window.axiosmq = [];
         var W = P.a.CancelToken
             , K = function (t, e) {
@@ -22451,213 +22451,11 @@ var ggx;
     }
 }]);
 
-
-
-// var aa = gyx("56d7")\
-// aaa = ggx.dispatch("setRankey"),
-//         setInterval((function() {
-//             ggx.dispatch("setRankey")
-//         }
-//         ), 18e5);
-var k = gyx("1da1");
-
-var y = gyx("c7eb");
-var q = gyx("852e");
-var A = gyx.n(q);
-var a = gyx("2b0e");
-var V = gyx("4328");
-var N = gyx.n(V);
-
-
-
-
-I = (gyx("d3b7"),
-    gyx("d81d"),
-    gyx("4e82"),
-    gyx("b64b"),
-    gyx("bc3a"))
-var P = gyx.n(I);
-// var W = P.a.CancelToken;
-var W = P.a.CancelToken
-
-
-
-D = (gyx("25f0"),
-    gyx("3452"))
-    , U = gyx.n(D);
-
-
-
-Y = function (t) {
-    return U.a.MD5(t).toString()
-};
-var H = U.a.enc.Utf8.parse("0102030405060708");;;;;;;;;
-J = function (t, e) {
-    e = U.a.enc.Utf8.parse(e);
-    var n = U.a.enc.Utf8.parse(t);
-    return U.a.AES.encrypt(n, e, {
-        iv: H
-    }).toString()
+function getrdkey(){
+    window.ggx.dispatch("setRankey");
+    return window.gyx;
 };
 
-R = gyx("2f62");
-a["a"].use(R["a"]);
-var B = 10
-    , z = new R["a"].Store({
-        state: {
-            rankey: "",
-            requestId: ""
-        },
-        mutations: {
-            setRankey: function (t, e) {
-                t.rankey = e
-            },
-            setRequestId: function (t, e) {
-                t.requestId = e
-            }
-        },
-        actions: {
-            setRankey: function (t) {
-                return Object(k["a"])(Object(y["a"])().mark((function e() {
-                    var n, a, r, s;
-                    return Object(y["a"])().wrap((function (e) {
-                        while (1)
-                            switch (e.prev = e.next) {
-                                case 0:
-                                    if (!(B < 1)) {
-                                        e.next = 2;
-                                        break
-                                    }
-                                    return e.abrupt("return", !1);
-                                case 2:
-                                    return e.next = 4,
-                                        X("/api/customer/loginapi/getRankey");
-                                case 4:
-                                    n = e.sent,
-                                        a = n.errorCode,
-                                        r = n.requestId,
-                                        s = n.rankey,
-                                        0 == a ? (console.log("rankey+requestId:", s, r),
-                                            t.commit("setRankey", s),
-                                            t.commit("setRequestId", r),
-                                            B = 10) : (B--,
-                                                t.dispatch("setRankey"));
-                                case 9:
-                                case "end":
-                                    return e.stop()
-                            }
-                    }
-                    ), e)
-                }
-                )))()
-            }
-        },
-        modules: {}
-    });
-function G(t) {
-    var e = {
-        t: (new Date).getTime(),
-        ct: "pc",
-        permanent_id: A.a.get("__permanent_id"),
-        requestId: z.state.requestId
-    };
-    e = Object.assign(e, t);
-    var n = {};
-    Object.keys(e).sort().map((function (t) {
-        ("sign" != t && e[t] || 0 === e[t]) && (n[t] = e[t])
-    }
-    ));
-    var a = N.a.stringify(n);
-    return a = decodeURIComponent(a),
-        console.log("str:", a),
-        a = Y(a),
-        console.log("md5:", a),
-        console.log("rankey:", z.state.rankey),
-        a = J(a, z.state.rankey),
-        console.log("sign:", a),
-        e.sign = a,
-        e
-}
 
-X = function () {
-    var t = Object(k["a"])(Object(y["a"])().mark((function t(e, n, a) {
-        var r;
-        return Object(y["a"])().wrap((function (t) {
-            while (1)
-                switch (t.prev = t.next) {
-                    case 0:
-                        return n = G(n),
-                            t.next = 3,
-                            P.a.post(e, N.a.stringify(n), {
-                                params: a,
-                                headers: {
-                                    "Content-Type": "application/x-www-form-urlencoded"
-                                },
-                                cancelToken: new W((function (t) {
-                                    window.axiosmq.push(t)
-                                }
-                                ))
-                            });
-                    case 3:
-                        return r = t.sent,
-                            t.abrupt("return", r.data);
-                    case 5:
-                    case "end":
-                        return t.stop()
-                }
-        }
-        ), t)
-    }
-    )));
-    return function (e, n, a) {
-        return t.apply(this, arguments)
-    }
-}();
-
-
-var ggg;
-function setRankey(t) {
-    return Object(k["a"])(Object(y["a"])().mark((function e() {
-        var n, a, r, s;
-        return Object(y["a"])().wrap((function (e) {
-            while (1)
-                switch (e.prev = e.next) {
-                    case 0:
-                        if (!(B < 1)) {
-                            e.next = 2;
-                            break
-                        }
-                        return e.abrupt("return", !1);
-                    case 2:
-                        return e.next = 4,
-                            X("/api/customer/loginapi/getRankey");
-                    case 4:
-                        n = e.sent,
-                            ggg = n,
-                            a = n.errorCode,
-
-                            r = n.requestId,
-                            s = n.rankey,
-                            console.log(r, s)
-                        0 == a ? (console.log("rankey+requestId:", s, r),
-                            t.commit("setRankey", s),
-                            t.commit("setRequestId", r),
-                            B = 10) : (B--,
-                                t.dispatch("setRankey"));
-
-
-                    case 9:
-                    case "end":
-                        return e.stop()
-                }
-        }
-        ), e)
-    }
-    )))()
-    return e
-};
-
-setRankey(z);
-console.log(ggg)
-
-//var ggg = setRankey(t)
+aa = getrdkey();
+return aa;
