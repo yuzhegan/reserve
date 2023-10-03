@@ -9,9 +9,13 @@ var crypto = require('crypto-js');
 // a = Y(a)  //Y(a) md5
 // a 为需要md5的明文参数 到python里面处理
 // permanent_id 为cookies生成的 _permanent_id 的value
-function AesEncrypt(a, rankey) {
-	var a = crypto.MD5(a).toString()
-	console.log(a)
+function AesEncrypt(x, y, rankey) {
+	// var a = crypto.MD5(a).toString()
+	// console.log(a)
+	var a = JSON.stringify({
+		x: x / 350,
+		y: y
+	})
 
 	H = crypto.enc.Utf8.parse("0102030405060708")
 	J = function(t, e) {
@@ -26,6 +30,7 @@ function AesEncrypt(a, rankey) {
 };
 
 
-console.log(AesEncrypt('ct=pc&need_new_verifydata=0&permanent_id=20231003144836115164138128881944335&point_json=aWr1tTpulziQcKFJVM8dE1Qjnxhf0oYn9Wn1Hm+SV1q18zaztw75iOwz/jQDvWvc=&requestId=2310031448265340D8vR4n_30eb&situation=login&slide_cost_time=2121&t=1696315717472&verifyToken=eabc20c65d694d97b15c695324292715', 'PgYnTTwaapDf2nZV'))
+// console.log(AesEncrypt('{"x":0.7628571428571429,"y":0.1127451}', 'Wg1mNDiK31VMsB9G'))
+// console.log(AesEncrypt(150,0.14215687, 'sdT0amtwrmqdh6mS'))
 
 
