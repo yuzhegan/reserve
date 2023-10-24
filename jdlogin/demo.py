@@ -11,31 +11,39 @@ headers = {
     'accept': '*/*',
     'accept-language': 'zh-CN,zh;q=0.9',
     'referer': 'https://passport.jd.com/',
-    'sec-ch-ua': '"Google Chrome";v="117", "Not;A=Brand";v="8", "Chromium";v="117"',
+    'sec-ch-ua': '"Not?A_Brand";v="8", "Chromium";v="108"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"',
     'sec-fetch-dest': 'script',
     'sec-fetch-mode': 'no-cors',
     'sec-fetch-site': 'same-site',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
 }
-params = (
-    ('appId', '1604ebb2287'),
-    ('scene', 'login'),
-    ('product', 'click-bind-suspend'),
-    ('e', '2PYVLZL3WDVBPL4LTF566N6PRFNAYO447LKWBQZATTYTUT5D6LCLYAD3O4S5PBY5ILNDQOU6SYXWTO3ZMQBVVXYL5I'),
-    ('j', ''),
-    ('lang', 'zh_CN'),
-    ('callback', 'jsonp_06534497191746693'),
-)
+params = {
+    'appId': '1604ebb2287',
+    'scene': 'login',
+    'product': 'click-bind-suspend',
+    'e': 'FHWFGUXTWJQDJ7VQMTQK243QCO43XEC5CRGLGTKMVTAV7GWKCPSTIEGSFTX2WRFTUSGB4DUXDFINJJWXQW7IYCPHMU',
+    'j': '',
+    'lang': 'zh_CN',
+    'callback': 'jsonp_07097674328611292',
+}
 response = requests.get('https://iv.jd.com/slide/g.html', headers=headers, params=params).text
-
 # str to json
 import json
-response = response.replace('jsonp_06534497191746693(', '')
-response = response.replace(')', '')
+# response = response.replace('jsonp_07097674328611292(', '')
+# response = response.replace(')', '')
+import re
+# 原始字符串
+# 使用正则表达式匹配 JSON 数据
+pattern = r'\((.*?)\)'  # 匹配括号内的内容
+match = re.search(pattern, response)
+if match:
+    response = match.group(1)
+else:
+    print("No JSON data found.")
 response = json.loads(response)
-ic(response)
+# ic(response)
 bg = response['bg']
 patch = response['patch']
 # base64 to img
@@ -46,19 +54,49 @@ with open('./jdlogin/img/bg.png', 'wb') as f:
 patch = base64.b64decode(patch)
 with open('./jdlogin/img/patch.png', 'wb') as f:
     f.write(patch)
-
 # get the instance of sild in bg img
 import ddddocr
 det = ddddocr.DdddOcr(det=False, ocr=False, show_ad=False)
 bg = open('./jdlogin/img/bg.png', 'rb').read()
 patch = open('./jdlogin/img/patch.png', 'rb').read()
 instance = det.slide_match(patch, bg, simple_target=True)['target'][0]
+instance = round(instance*242/360+25)
 ic(instance)
-
-
 challenge = response['challenge']
 y = response['y']
+from gentrace import get_trace
+trace = get_trace(instance)
+print(trace)
+def check_trace(trace):
+    import execjs
+    with open('./jdlogin/demo.js', 'r', encoding='utf-8') as f:
+        js = f.read()
+    ctx = execjs.compile(js)
+    result = ctx.call('getbparms', trace)
+    contexts = requests.get('https://seq.jd.com/jseqf.html?bizId=passport_jd_com_login_pc&platform=js&version=1', headers=headers).text
+    session_id = re.findall(r'_jdtdmap_sessionId=\"(.+?)\"', contexts)[0]
+    print(session_id)
 
 
-
-
+    print(result)
+    params_a = {
+    'd': result,
+    'c': challenge,
+    'w': '242',
+    'appId': '1604ebb2287',
+    'scene': 'login',
+    'product': 'click-bind-suspend',
+    'e': 'FHWFGUXTWJQDJ7VQMTQK243QCO43XEC5CRGLGTKMVTAV7GWKCPSTIEGSFTX2WRFTUSGB4DUXDFINJJWXQW7IYCPHMU',
+    'j': '',
+    's': session_id,
+    'o': '1856660592',
+    'o1': '0',
+    'u': 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2F',
+    'lang': 'zh_CN',
+    'callback': 'jsonp_0964310498652821',
+}
+    print(params)
+    response = requests.get('https://iv.jd.com/slide/s.html', headers=headers, params=params_a).text
+    print(response)
+    return response
+check_trace(trace)
