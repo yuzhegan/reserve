@@ -225,30 +225,6 @@ if __name__ == '__main__':
 
 '''
 # 预约
-json_data = {
-    'deviceId': 'f7ce1e1a-3923-9054-eb2f-c5cea952c9b8',
-    'sendTime': 1698160806984,
-    'sign': '29416F6D8AF21D020F22380518778982',
-    'userId': 1290759,
-    'accessToken': 5511690075054080,
-    'openId': 'o80mt0ffmsdwmqrfgqH-I9j2kN44',
-    'activityId': '132',
-    'activityModifyUser': 1290759,
-    'activityType': 1,
-    'activityMaxPeople': '6866',
-    'activityDateId': '16639',
-    'activityAddressZh': '2780878',
-    'paymentStatus': 3,
-    'baomingActivityType': 66,
-}
-
-response = requests.post(
-    'http://webchatapi.sz-redcube.com/reservation/activity/doReservationNew',
-    headers=headers,
-    json=json_data,
-    verify=False,
-)
-
 # 预约
 json_data = {
     'deviceId': 'f7ce1e1a-3923-9054-eb2f-c5cea952c9b8',
@@ -262,7 +238,7 @@ json_data = {
     'activityType': 1,
     # 'activityMaxPeople': '6868', #最大可报名人数
     'activityDateId': '16639',  # 日期id
-    'activityAddressZh': '2780877',
+    'activityAddressZh': '2780877', 预约人数
     'paymentStatus': 3,
     'baomingActivityType': 66,
 }
