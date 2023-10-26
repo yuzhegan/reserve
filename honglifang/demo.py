@@ -4,11 +4,14 @@
 # @File: %
 #!/usr/bin/env
 # %%
+import sys
+import getopt
 import hashlib
 from icecream import ic
 import os
 import requests
 import time
+import execjs
 
 headers = {
     'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -21,8 +24,12 @@ headers = {
     'Referer': 'http://webchat.sz-redcube.com/',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 NetType/WIFI MicroMessenger/7.0.20.1781(0x6700143B) WindowsWechat(0x6309071d) XWEB/8447 Flue',
 }
-
-cliendId = 'f7ce1e1a-3923-9054-eb2f-c5cea952c9b8'
+with open('./honglifang/clientid.js', 'r', encoding='utf-8') as f:
+    js = f.read()
+ctx = execjs.compile(js)
+cliendId = ctx.call('guid')
+print(cliendId)
+# cliendId = 'f7ce1e1a-3923-9054-eb2f-c5cea952c9b8'
 signKey = 'srAO407hOx04NrP1g3rDoIWzaTO4fda7F'
 # md5加密
 
@@ -35,7 +42,7 @@ def hex_md5(str):
 # 登陆
 
 
-def login():
+def login(username, password):
     stime = int(time.time() * 1000)
     timestamp = str(stime)
     sign = hex_md5(cliendId + timestamp + signKey).upper()
@@ -46,8 +53,8 @@ def login():
         'deviceId': cliendId,
         'sendTime': str(stime),
         'sign': sign,
-        'username': '15985926948',
-        'password': 'aaa4343',
+        'username': username,
+        'password': password,
         # 'username': '15083861116',
         # 'password': 'zt2580',
         'openId': 'o80mt0ffmsdwmqrfgqH-I9j2kN44',
@@ -97,7 +104,7 @@ def getUserInfo(userId, accessToken):
         'deviceId': cliendId,
         'sendTime': timestamp,
         'sign': sign,
-        'userId': userid,
+        'userId': userId,
         'accessToken': accessToken,
     }
 
@@ -185,45 +192,107 @@ def doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, acti
 # %%
 
 
-if __name__ == '__main__':
-    # %%
-    response = login()
-    # %%
+def seckill_program(username, passwd, dateTime, amopm):
+    print("秒杀定时程序已启动！")
+    response = login(username, passwd)
     accessToken = response['data']['accessToken']
     userid = response['data']['userId']
+    print("userid==》》", userid)
     openId = response['data']['openId']
-    # %%
-    res = getAllActivity(userid, accessToken, '2023-11-01')
-    # %%
+    print("openId==》》", openId)
+    res = getAllActivity(userid, accessToken, dateTime)
     # idea乐园上午场
     lists = res['data']['list']
     for list in lists:
-        if "下午" in list['activityTitleZh']:
+        if amopm in list['activityTitleZh']:
             activtyId = list['activityId']
             activityDataId = list['id']
 
-
-    # %%
     getUserInfo(userid, accessToken)
-    # %%
     resp = getContantList(userid, accessToken)
-    # %%
     activityType = len(resp['data']['data'])
     activityAddressZhList = []
     for data in resp['data']['data']:
         activityAddressZhList.append(str(data['contactId']))
-        
+
     activityAddressZh = ','.join(activityAddressZhList)
     print(activityAddressZh)
 
-
-    # %%
     print(activtyId, activityDataId, activityAddressZh, activityType)
-    # %%
-    doReservationNew(userid, accessToken, openId, activtyId, activityDataId, activityAddressZh, activityType)
+    doReservationNew(userid, accessToken, openId, activtyId,
+                     activityDataId, activityAddressZh, activityType)
+    # 在这里编写你的秒杀定时程序逻辑
+    # ...
+
+
+def main(argv):
+    username = ''
+    passwd = ''
+    dateTime = ''
+    amopm = ''
+
+    try:
+        opts, args = getopt.getopt(argv[1:], "ha:u:p:d:a", [
+                                   "ufile=", "pfile=", "dfile=", "afile="])
+    except getopt.GetoptError:
+        print('test.py -i <inputfile> -o <outputfile> <++>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            useage(argv[0])
+            sys.exit()
+        elif opt in ("-u", "--ufile"):
+            username = arg
+        elif opt in ("-p", "--pfile"):
+            passwd = arg
+        elif opt in ("-d", "--dfile"):
+            dateTime = arg
+        elif opt in ("-a", "--pfile"):
+            amopm = arg
+        # 获取当前时间
+    current_time = time.localtime()
+    # 设置目标时间为 10:53:00
+    target_time = time.struct_time((current_time.tm_year, current_time.tm_mon, current_time.tm_mday,
+                                   23, 55, 0, current_time.tm_wday, current_time.tm_yday, current_time.tm_isdst))
+    # 计算需要等待的秒数
+    current_timestamp = time.mktime(current_time)
+    target_timestamp = time.mktime(target_time)
+    wait_seconds = target_timestamp - current_timestamp
+    print("等待", wait_seconds, "秒")
+    # 等待到目标时间
+    time.sleep(wait_seconds)
+    # 在目标时间执行秒杀定时程序
+    # seckill_program('18682001980', '123456', '2021-09-26', '上午')
+    seckill_program(username, passwd, dateTime, amopm)
+
+    # print('输入的文件为：', inputfile)
+    # print('输出的文件为：', outputfile)
+
+
+if __name__ == "__main__":
+    main(sys.argv)
+    # python demo.py -u "yuzhe" -p "123456" -d "2024-11-03" -a "下午场一"
 
 
 '''
+if __name__ == '__main__':
+    # 获取当前时间
+    current_time = time.localtime()
+    # 设置目标时间为 10:53:00
+    target_time = time.struct_time((current_time.tm_year, current_time.tm_mon, current_time.tm_mday, 16, 00, 0, current_time.tm_wday, current_time.tm_yday, current_time.tm_isdst))
+    # 计算需要等待的秒数
+    current_timestamp = time.mktime(current_time)
+    target_timestamp = time.mktime(target_time)
+    wait_seconds = target_timestamp - current_timestamp
+    print("等待", wait_seconds, "秒")
+    # 等待到目标时间
+    time.sleep(wait_seconds)
+    # 在目标时间执行秒杀定时程序
+    # seckill_program('18682001980', '123456', '2021-09-26', '上午')
+    seckill_program()
+
+
+
 # 预约
 # 预约
 json_data = {
