@@ -228,8 +228,6 @@
 //         1698115068761
 //     ]
 // ]
-
-
 function string10to64(a) {
 	var b = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-~'['split']('')
 		, c = b['length']
@@ -242,12 +240,9 @@ function string10to64(a) {
 	} while (d);
 	return e['join']('');
 }
-
 function prefixInteger(a, b) {
 	return (Array(b)['join'](0x0) + a)['slice'](-b);
 }
-
-
 function pretreatment(a, b, c) {
 	var d = this;
 	var e = string10to64(Math['abs'](a));
@@ -258,7 +253,6 @@ function pretreatment(a, b, c) {
 	f += prefixInteger(e, b);
 	return f;
 }
-
 function getcoordinate(a) {
 	var b = this;
 	var c = new Array();
@@ -278,11 +272,8 @@ function getcoordinate(a) {
 	}
 	return c['join']('');
 }
-
-
 function getbparms(b) {
 	var strs;
 	strs = getcoordinate(b);
 	return strs;
 }
-
