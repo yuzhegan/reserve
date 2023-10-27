@@ -264,6 +264,7 @@ def main(argv):
     # 在目标时间执行秒杀定时程序
     # seckill_program('18682001980', '123456', '2021-09-26', '上午')
     seckill_program(username, passwd, dateTime, amopm)
+    # login(username, passwd)
 
     # print('输入的文件为：', inputfile)
     # print('输出的文件为：', outputfile)
