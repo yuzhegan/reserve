@@ -253,14 +253,14 @@ def main(argv):
     current_time = time.localtime()
     # 设置目标时间为 10:53:00
     target_time = time.struct_time((current_time.tm_year, current_time.tm_mon, current_time.tm_mday,
-                                   23, 55, 0, current_time.tm_wday, current_time.tm_yday, current_time.tm_isdst))
+                                   16, 00, 0, current_time.tm_wday, current_time.tm_yday, current_time.tm_isdst))
     # 计算需要等待的秒数
     current_timestamp = time.mktime(current_time)
     target_timestamp = time.mktime(target_time)
     wait_seconds = target_timestamp - current_timestamp
     print("等待", wait_seconds, "秒")
     # 等待到目标时间
-    time.sleep(wait_seconds)
+    # time.sleep(wait_seconds)
     # 在目标时间执行秒杀定时程序
     # seckill_program('18682001980', '123456', '2021-09-26', '上午')
     seckill_program(username, passwd, dateTime, amopm)

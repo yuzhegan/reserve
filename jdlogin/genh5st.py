@@ -25,10 +25,10 @@ driver = webdriver.Chrome(options=options)
 driver.maximize_window()
 
 
-driver.get("https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2F")
+driver.get("https://passport.jd.com/uc/login?ReturnUrl=https%3A%2F%2Fwww.jd.com%2F")
 
 # read c.js 
-with open(os.path.join(os.path.dirname(__file__), 'encrypyData.js'), 'r', encoding='utf-8') as f:
+with open(os.path.join(os.path.dirname(__file__), 'h5st.js'), 'r', encoding='gbk') as f:
     js = f.read()
     # ruan c.js the function test and ouptut test value
     output = driver.execute_script(js)
