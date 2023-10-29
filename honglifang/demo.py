@@ -91,7 +91,7 @@ def getAllActivity(userId, accessToken, chooseTime):
         json=json_data,
         verify=False,
     ).json()
-    print("所有活动数据==》》", response)
+    # print("所有活动数据==》》", response)
     return response
 
 # getUserInfo
@@ -138,7 +138,7 @@ def getContantList(userid, accessToken):
 # 立即预约
 
 
-def doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, activtyAddressZh, activityType):
+def doReservationNew(username, userid, accessToken, openId, activtyId, activtyDateId, activtyAddressZh, activityType):
     # activtyId = '132' # 龙岗科技管
     # activtyId = '12' #"科技馆2F(单次入馆无需重复预约科技馆)" 上午 IDea乐园
     # activtyId = '11' #"科技馆2F(单次入馆无需重复预约科技馆)" 下午 IDea乐园
@@ -188,7 +188,7 @@ def doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, acti
     )
     print("立即预约==》》", response.status_code)
     print(response.json())
-    print("done")
+    print(username, "done")
 # %%
 
 
@@ -197,9 +197,9 @@ def seckill_program(username, passwd, dateTime, amopm):
     response = login(username, passwd)
     accessToken = response['data']['accessToken']
     userid = response['data']['userId']
-    print("userid==》》", userid)
+    # print("userid==》》", userid)
     openId = response['data']['openId']
-    print("openId==》》", openId)
+    # print("openId==》》", openId)
     res = getAllActivity(userid, accessToken, dateTime)
     # idea乐园上午场
     lists = res['data']['list']
@@ -216,10 +216,10 @@ def seckill_program(username, passwd, dateTime, amopm):
         activityAddressZhList.append(str(data['contactId']))
 
     activityAddressZh = ','.join(activityAddressZhList)
-    print(activityAddressZh)
+    # print(activityAddressZh)
 
-    print(activtyId, activityDataId, activityAddressZh, activityType)
-    doReservationNew(userid, accessToken, openId, activtyId,
+    # print(activtyId, activityDataId, activityAddressZh, activityType)
+    doReservationNew(username, userid, accessToken, openId, activtyId,
                      activityDataId, activityAddressZh, activityType)
     # 在这里编写你的秒杀定时程序逻辑
     # ...
@@ -260,11 +260,14 @@ def main(argv):
     wait_seconds = target_timestamp - current_timestamp
     print("等待", wait_seconds, "秒")
     # 等待到目标时间
-    # time.sleep(wait_seconds)
+    time.sleep(wait_seconds)
     # 在目标时间执行秒杀定时程序
     # seckill_program('18682001980', '123456', '2021-09-26', '上午')
-    seckill_program(username, passwd, dateTime, amopm)
-    # login(username, passwd)
+    try:
+        seckill_program(username, passwd, dateTime, amopm)
+        # login(username, passwd)
+    except Exception as e:
+        print(e)
 
     # print('输入的文件为：', inputfile)
     # print('输出的文件为：', outputfile)
