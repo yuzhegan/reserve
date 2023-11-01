@@ -6,8 +6,8 @@
 from icecream import ic
 import os
 import requests
+import execjs
 
-import requests
 
 
 class taobao_login():
@@ -33,11 +33,20 @@ class taobao_login():
         }
         self.session.headers.update(self.headers)
         self.GetCookie()  # 获取cookie
+        self.passwd2 = self.GetPasswd2('123456')  # 获取加密后的密码
+        ic(self.passwd2)
 
     def GetCookie(self):
         # add headers to session
         response = self.session.get('https://login.taobao.com/')
         ic(response.cookies.get_dict())
 
+    def GetPasswd2(self, passwd):
+        with open ('./taobao/demo.js', 'r') as f:
+            js = f.read()
+        ctx = execjs.compile(js)
+        return ctx.call('getpwd', passwd)
+
 if __name__ == '__main__':
-    taobao = taobao_login()
+    login = taobao_login()
+
