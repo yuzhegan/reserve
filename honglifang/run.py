@@ -74,12 +74,21 @@ target_timestamp = time.mktime(target_time)
 wait_seconds = target_timestamp - current_timestamp
 print("等待", wait_seconds, "秒")
 # 等待到目标时间
-# time.sleep(wait_seconds)
-proxy = Proxy_JiGuang()
-proxy.SetLocalIp2WhiteList()
-ips = proxy.GenJG_Proxy_IPs()
-ic(ips)
+time.sleep(wait_seconds)
+def GenJdIps():
+    proxy = Proxy_JiGuang()
+    proxy.SetLocalIp2WhiteList()
+    ips = proxy.GenJG_Proxy_IPs()
+    ic(ips)
+    return ips
 
+try:
+    ips = GenJdIps()
+except Exception as e:
+    print(e)
+    for i in range(3):
+        time.sleep(3)
+        ips = GenJdIps()
 
 for param in params:
     ip = random.choice(ips)
