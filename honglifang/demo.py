@@ -1,9 +1,9 @@
 # encoding='utf-8
-
 # @Time: 2023-10-24
 # @File: %
 #!/usr/bin/env
 # %%
+from Proxy_JiGuang import Proxy_JiGuang
 import sys
 import getopt
 import hashlib
@@ -12,7 +12,7 @@ import os
 import requests
 import time
 import execjs
-
+import random
 headers = {
     'Accept': 'application/json, text/javascript, */*; q=0.01',
     'Accept-Language': 'zh-CN,zh;q=0.9',
@@ -32,23 +32,33 @@ print(cliendId)
 # cliendId = 'f7ce1e1a-3923-9054-eb2f-c5cea952c9b8'
 signKey = 'srAO407hOx04NrP1g3rDoIWzaTO4fda7F'
 # md5加密
+# proxy = Proxy_JiGuang()
+# time.sleep(2)
+# # proxy.SetLocalIp2WhiteList()
+# ips = proxy.GenJG_Proxy_IPs()
+# ic(ips)
+# ip = random.choice(ips)
+# proxies = {
+#     'http': 'http://' + str(ip['ip'])+':'+str(ip['port']),
+#     'https': 'https://' + str(ip['ip'])+':'+str(ip['port']),
+# }
+# ic(proxies)
 
 
 def hex_md5(str):
     m = hashlib.md5()
     m.update(str.encode('utf-8'))
     return m.hexdigest()
-
 # 登陆
 
 
-def login(username, password):
+def login(username, password, proxies):
+    ic(proxies)
     stime = int(time.time() * 1000)
     timestamp = str(stime)
     sign = hex_md5(cliendId + timestamp + signKey).upper()
     # sign = hex_md5('f7ce1e1a-3923-9054-eb2f-c5cea952c9b81698156950932srAO407hOx04NrP1g3rDoIWzaTO4fda7F').upper()
     print(sign)
-
     json_data = {
         'deviceId': cliendId,
         'sendTime': str(stime),
@@ -59,16 +69,14 @@ def login(username, password):
         # 'password': 'zt2580',
         'openId': 'o80mt0ffmsdwmqrfgqH-I9j2kN44',
     }
-
     response = requests.post('http://webchatapi.sz-redcube.com/login/checkUser',
-                             headers=headers, json=json_data, verify=False).json()
-    print("登陆信息===》》", response)
+                             headers=headers, json=json_data, proxies=proxies, verify=False,).json()
+    print("登陆信息===》》", response, username, password)
     return response
-
 # 获取所有活动数据
 
 
-def getAllActivity(userId, accessToken, chooseTime):
+def getAllActivity(userId, accessToken, chooseTime, proxies):
     timestamp = str(int(time.time() * 1000))
     sign = hex_md5(cliendId + timestamp + signKey).upper()
     json_data = {
@@ -84,20 +92,19 @@ def getAllActivity(userId, accessToken, chooseTime):
         # 'activityStartTime': '2023-10-28',
         'activityStartTime': chooseTime,
     }
-
     response = requests.post(
         'http://webchatapi.sz-redcube.com/reservation/activity/getAllActivitiesNew',
         headers=headers,
+        proxies=proxies,
         json=json_data,
         verify=False,
     ).json()
-    print("所有活动数据==》》", response)
+    # print("所有活动数据==》》", response)
     return response
-
 # getUserInfo
 
 
-def getUserInfo(userId, accessToken):
+def getUserInfo(userId, accessToken, proxies):
     timestamp = str(int(time.time() * 1000))
     sign = hex_md5(cliendId + timestamp + signKey).upper()
     json_data = {
@@ -107,15 +114,14 @@ def getUserInfo(userId, accessToken):
         'userId': userId,
         'accessToken': accessToken,
     }
-
     response = requests.post('http://webchatapi.sz-redcube.com/user/user/getUserInfo',
-                             headers=headers, json=json_data, verify=False).json()
+                             headers=headers, json=json_data, proxies=proxies, verify=False).json()
     print("UserInfo是==》》", response)
     return response
 # getContantList
 
 
-def getContantList(userid, accessToken):
+def getContantList(userid, accessToken, proxies):
     timestamp = str(int(time.time() * 1000))
     sign = hex_md5(cliendId + timestamp + signKey).upper()
     json_data = {
@@ -125,24 +131,22 @@ def getContantList(userid, accessToken):
         'userId': userid,
         'accessToken': accessToken,
     }
-
     response = requests.post(
         'http://webchatapi.sz-redcube.com/user/contact/contactList',
         headers=headers,
         json=json_data,
+        proxies=proxies,
         verify=False,
     ).json()
-    print("contactList用户信息==》》", response)
+    # print("contactList用户信息==》》", response)
     return response
-
 # 立即预约
 
 
-def doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, activtyAddressZh, activityType):
+def doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, activtyAddressZh, activityType, proxies, username):
     # activtyId = '132' # 龙岗科技管
     # activtyId = '12' #"科技馆2F(单次入馆无需重复预约科技馆)" 上午 IDea乐园
     # activtyId = '11' #"科技馆2F(单次入馆无需重复预约科技馆)" 下午 IDea乐园
-
     timestamp = str(int(time.time() * 1000))
     sign = hex_md5(cliendId + timestamp + signKey).upper()
     json_data = {
@@ -162,7 +166,6 @@ def doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, acti
         'paymentStatus': 3,
         'baomingActivityType': 66,
     }
-
     '''json_data = {
         'deviceId': 'f7ce1e1a-3923-9054-eb2f-c5cea952c9b8',
         'sendTime': 1698239168086,
@@ -179,61 +182,58 @@ def doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, acti
         'paymentStatus': 3,
         'baomingActivityType': 66,
     }'''
-
     response = requests.post(
         'http://webchatapi.sz-redcube.com/reservation/activity/doReservationNew',
         headers=headers,
         json=json_data,
+        proxies=proxies,
         verify=False,
     )
     print("立即预约==》》", response.status_code)
-    print(response.json())
+    print(response.json(), username)
     print("done")
 # %%
 
 
-def seckill_program(username, passwd, dateTime, amopm):
+def seckill_program(username, passwd, dateTime, amopm, proxies):
     print("秒杀定时程序已启动！")
-    response = login(username, passwd)
+    response = login(username, passwd, proxies)
     accessToken = response['data']['accessToken']
     userid = response['data']['userId']
     print("userid==》》", userid)
     openId = response['data']['openId']
     print("openId==》》", openId)
-    res = getAllActivity(userid, accessToken, dateTime)
+    res = getAllActivity(userid, accessToken, dateTime, proxies)
     # idea乐园上午场
     lists = res['data']['list']
     for list in lists:
         if amopm in list['activityTitleZh']:
             activtyId = list['activityId']
             activityDataId = list['id']
-
-    getUserInfo(userid, accessToken)
-    resp = getContantList(userid, accessToken)
+    getUserInfo(userid, accessToken, proxies)
+    resp = getContantList(userid, accessToken, proxies)
     activityType = len(resp['data']['data'])
     activityAddressZhList = []
     for data in resp['data']['data']:
         activityAddressZhList.append(str(data['contactId']))
-
     activityAddressZh = ','.join(activityAddressZhList)
     print(activityAddressZh)
-
     print(activtyId, activityDataId, activityAddressZh, activityType)
     doReservationNew(userid, accessToken, openId, activtyId,
-                     activityDataId, activityAddressZh, activityType)
+                     activityDataId, activityAddressZh, activityType, proxies, username)
     # 在这里编写你的秒杀定时程序逻辑
     # ...
 
+import ast
 
 def main(argv):
     username = ''
     passwd = ''
     dateTime = ''
     amopm = ''
-
     try:
-        opts, args = getopt.getopt(argv[1:], "ha:u:p:d:a", [
-                                   "ufile=", "pfile=", "dfile=", "afile="])
+        opts, args = getopt.getopt(argv[1:], "ha:u:p:d:a:x:", [
+                                   "ufile=", "pfile=", "dfile=", "afile=", "xfile="])
     except getopt.GetoptError:
         print('test.py -i <inputfile> -o <outputfile> <++>')
         sys.exit(2)
@@ -249,7 +249,14 @@ def main(argv):
             dateTime = arg
         elif opt in ("-a", "--pfile"):
             amopm = arg
-        # 获取当前时间
+        elif opt in ("-x", "--pfile"):
+            arg = arg.strip('[["').strip('"]]')  # 删除额外的括号
+            try:
+                xproxies = ast.literal_eval(arg)
+            except (ValueError, SyntaxError) as e:
+                print('代理信息参数格式错误:', e)
+                sys.exit(2)
+                # 获取当前时间
     current_time = time.localtime()
     # 设置目标时间为 10:53:00
     target_time = time.struct_time((current_time.tm_year, current_time.tm_mon, current_time.tm_mday,
@@ -261,20 +268,16 @@ def main(argv):
     print("等待", wait_seconds, "秒")
     # 等待到目标时间
     # time.sleep(wait_seconds)
+
     # 在目标时间执行秒杀定时程序
     # seckill_program('18682001980', '123456', '2021-09-26', '上午')
-    seckill_program(username, passwd, dateTime, amopm)
-    # login(username, passwd)
-
+    seckill_program(username, passwd, dateTime, amopm, xproxies)
+    # login(username, passwd,xproxies)
     # print('输入的文件为：', inputfile)
     # print('输出的文件为：', outputfile)
-
-
 if __name__ == "__main__":
     main(sys.argv)
     # python demo.py -u "yuzhe" -p "123456" -d "2024-11-03" -a "下午场一"
-
-
 '''
 if __name__ == '__main__':
     # 获取当前时间
@@ -291,9 +294,6 @@ if __name__ == '__main__':
     # 在目标时间执行秒杀定时程序
     # seckill_program('18682001980', '123456', '2021-09-26', '上午')
     seckill_program()
-
-
-
 # 预约
 # 预约
 json_data = {
@@ -312,7 +312,6 @@ json_data = {
     'paymentStatus': 3,
     'baomingActivityType': 66,
 }
-
 response = requests.post(
     'http://webchatapi.sz-redcube.com/reservation/activity/doReservationNew',
     headers=headers,
