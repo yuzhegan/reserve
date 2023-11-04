@@ -48,7 +48,7 @@ processes = []
 
 # 创建并启动进程
  
-for i in range(2):  # 试两次 约到的概率大一点
+for i in range(1):  # 试两次 约到的概率大一点
     for param in params:  
         # print(param[1])
         p = Process(target=run_script, args=(param,))

@@ -260,12 +260,12 @@ def main(argv):
     wait_seconds = target_timestamp - current_timestamp
     print("等待", wait_seconds, "秒")
     # 等待到目标时间
-    time.sleep(wait_seconds)
+    # time.sleep(wait_seconds)
     # 在目标时间执行秒杀定时程序
     # seckill_program('18682001980', '123456', '2021-09-26', '上午')
     try:
-        seckill_program(username, passwd, dateTime, amopm)
-        # login(username, passwd)
+        # seckill_program(username, passwd, dateTime, amopm)
+        login(username, passwd)
     except Exception as e:
         print(e)
 
