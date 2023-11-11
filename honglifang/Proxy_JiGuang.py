@@ -59,7 +59,7 @@ class Proxy_JiGuang:
             ('city', '440500'),
             ('yys', '0'),
             ('port', '1'),
-            ('time', '6'),
+            ('time', '7'),
             ('ts', '0'),
             ('ys', '0'),
             ('cs', '0'),
@@ -69,10 +69,9 @@ class Proxy_JiGuang:
             ('mr', '1'),
             ('regions', ''),
         )
-        response = requests.get('http://d.jghttp.alicloudecs.com/getip',
+
+        response = requests.get('http://sd.jghttp.alicloudecs.com/get_ip',
                                 headers=self.headers, params=params, verify=False).json()
-        # response = requests.get('http://sd.jghttp.alicloudecs.com/get_ip',
-        #                         headers=self.headers, params=params, verify=False).json()
         ips = response['data']
         # ic(ips)
         # ip = random.choice(ips)
