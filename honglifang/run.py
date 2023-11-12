@@ -111,7 +111,7 @@ print(current_time)
 # 申请完代理看下时间有么有到16点
 current_hour = time.localtime().tm_hour
 if current_hour < 16:
-    time.sleep(GetSleepTimeSecend(16, 00, 00))
+    time.sleep(GetSleepTimeSecend(15, 59, 59))
 
 for i in range(2):
     try:
