@@ -3,6 +3,7 @@
 # @File: %
 #!/usr/bin/env
 # %%
+import ast
 from Proxy_JiGuang import Proxy_JiGuang
 import sys
 import getopt
@@ -195,6 +196,65 @@ def doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, acti
 # %%
 
 
+def getMyReservation(clientid, userid, accessToken, proxies):
+    time_stamp = str(int(time.time() * 1000))
+    # sign = ''
+    sign = hex_md5(cliendId + time_stamp + signKey).upper()
+
+    # data = {"deviceId": clientid,
+    #         "sendTime": time_stamp,
+    #         "sign": sign,
+    #         "userId": userid,
+    #         "accessToken": accessToken,
+    #         "pageNumb": 1,
+    #         "reservationCreateUser": userid, }
+    #
+    # response = requests.post('http://webchatapi.sz-redcube.com/reservation/activity/getMyReservation',
+    #                          headers=headers, data=data, verify=False, proxies=proxies)
+    json_data = {
+        'deviceId': clientid,
+        'sendTime': time_stamp,
+        'sign': sign,
+        'userId': userid,
+        'accessToken': accessToken,
+        'pageNumb': 1,
+        'reservationCreateUser': userid,
+    }
+
+    response = requests.post(
+        'http://webchatapi.sz-redcube.com/reservation/activity/getMyReservation',
+        headers=headers,
+        json=json_data,
+        verify=False,
+        proxies=proxies,
+    )
+
+    # proxies=proxies,
+    print("我的预约==》》", response)
+    # print(response.text)
+    print(response.json()['data'][0][])
+
+    # myip = response['data']
+    # print("我的预约ip==》》", myip)
+
+
+# %%
+
+def GetSleepTimeSecend(hour, minute, second):
+    current_time = time.localtime()
+    # 设置目标时间为 10:53:00
+    target_time = time.struct_time((current_time.tm_year, current_time.tm_mon, current_time.tm_mday,
+
+                                   hour, minute, second, current_time.tm_wday, current_time.tm_yday, current_time.tm_isdst))
+    # 计算需要等待的秒数
+    current_timestamp = time.mktime(current_time)
+    target_timestamp = time.mktime(target_time)
+    wait_seconds = target_timestamp - current_timestamp
+    print("等待", wait_seconds, "秒")
+    return wait_seconds
+
+
+
 def seckill_program(username, passwd, dateTime, amopm, proxies):
     print("秒杀定时程序已启动！")
     response = login(username, passwd, proxies)
@@ -203,13 +263,16 @@ def seckill_program(username, passwd, dateTime, amopm, proxies):
     print("userid==》》", userid)
     openId = response['data']['openId']
     print("openId==》》", openId)
+    time.sleep(1)
     res = getAllActivity(userid, accessToken, dateTime, proxies)
+    time.sleep(1)
     # idea乐园上午场
     lists = res['data']['list']
     for list in lists:
         if amopm in list['activityTitleZh']:
             activtyId = list['activityId']
             activityDataId = list['id']
+    time.sleep(1)
     getUserInfo(userid, accessToken, proxies)
     resp = getContantList(userid, accessToken, proxies)
     activityType = len(resp['data']['data'])
@@ -219,12 +282,21 @@ def seckill_program(username, passwd, dateTime, amopm, proxies):
     activityAddressZh = ','.join(activityAddressZhList)
     print(activityAddressZh)
     print(activtyId, activityDataId, activityAddressZh, activityType)
+
+
+    # 准时16点开抢
+    time.sleep(GetSleepTimeSecend(16, 00, 00))
+
+
     doReservationNew(userid, accessToken, openId, activtyId,
                      activityDataId, activityAddressZh, activityType, proxies, username)
+    # doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, activtyAddressZh, activityType, proxies, username):
+
+    getMyReservation(cliendId, userid, accessToken, proxies)
     # 在这里编写你的秒杀定时程序逻辑
+    # getMyReservation(clientid, userid, accessToken, proxies):
     # ...
 
-import ast
 
 def main(argv):
     username = ''
@@ -272,6 +344,7 @@ def main(argv):
     # 在目标时间执行秒杀定时程序
     # seckill_program('18682001980', '123456', '2021-09-26', '上午')
     seckill_program(username, passwd, dateTime, amopm, xproxies)
+
     # login(username, passwd,xproxies)
     # print('输入的文件为：', inputfile)
     # print('输出的文件为：', outputfile)
