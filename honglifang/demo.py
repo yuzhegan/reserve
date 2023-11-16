@@ -230,9 +230,9 @@ def getMyReservation(clientid, userid, accessToken, proxies):
     )
 
     # proxies=proxies,
-    print("我的预约==》》", response)
-    # print(response.text)
-    print(response.json()['data'][0][])
+    # print("我的预约==》》", response)
+    # # print(response.text)
+    # print(response.json()['data'][0])
 
     # myip = response['data']
     # print("我的预约ip==》》", myip)
@@ -292,7 +292,7 @@ def seckill_program(username, passwd, dateTime, amopm, proxies):
                      activityDataId, activityAddressZh, activityType, proxies, username)
     # doReservationNew(userid, accessToken, openId, activtyId, activtyDateId, activtyAddressZh, activityType, proxies, username):
 
-    getMyReservation(cliendId, userid, accessToken, proxies)
+    # getMyReservation(cliendId, userid, accessToken, proxies)
     # 在这里编写你的秒杀定时程序逻辑
     # getMyReservation(clientid, userid, accessToken, proxies):
     # ...

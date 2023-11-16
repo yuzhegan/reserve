@@ -86,7 +86,7 @@ def GenJdIps():
     return ips
 
 # 提前1分钟请求下来代理ip 代理ip可以用1-2分钟
-time.sleep(GetSleepTimeSecend(15, 58, 35))
+# time.sleep(GetSleepTimeSecend(15, 58, 35))
 
 for i in range(3):
     try:
