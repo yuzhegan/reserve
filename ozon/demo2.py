@@ -34,8 +34,9 @@ class Ozon_Spider:
 
     def Get_cookies(self):
         response = requests.get('https://www.ozon.ru/abt/result',
-                                impersonate="chrome110", headers=self.headers).cookies
-        cookies = response
+                                impersonate="chrome110", headers=self.headers)
+        cookies = response.cookies
+        print(cookies)
         return cookies
 
     def searchResultsV2(self, cookies, searh_text, page):
@@ -51,6 +52,7 @@ class Ozon_Spider:
         #     f.write(response.text)
         html = etree.HTML(response.text)
         data = html.xpath('//div[contains(@id,"state-searchResultsV2")]/@data-state')
+        # print(data)
         data = json.loads(data[0])
         # with open('ozon.json', 'w', encoding='utf-8') as f:
         #     f.write(json.dumps(data, indent=4, ensure_ascii=False))
