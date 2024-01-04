@@ -8,10 +8,13 @@ import os
 import requests
 import re
 import json
+from readFile import *
+import ddddocr
+import time
 
 
 class TianWenTai:
-    def __init__(self):
+    def __init__(self,week, pmAm):
         self.headers = {
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "zh-CN,zh;q=0.9",
@@ -28,10 +31,12 @@ class TianWenTai:
         }
         self.session = requests.session()
         self.session.headers.update(self.headers)
-        self.wxuser = '3f060f46669c470790699a7a2dbadf80'
+        self.wxuser = '308afb72731f4f2ca1822233e2c0d06e'
         self.token, self.tokenId = self.get_token()
-        self.week = '星期五'
-        self.pmAm = "上午"
+        # self.week = '星期五'
+        self.week = week
+        self.pmAm = pmAm
+        # self.pmAm = "上午"
 
     def get_token(self):
         url = "https://weather.121.com.cn/szqx/api/token.js"
@@ -74,14 +79,14 @@ class TianWenTai:
         for item in ticket_nums:
             if self.pmAm in item['name']:
                 available_ticket = int(item['maxNum']) - int(item['curNum'])
-                kfr_id = item['kfr_id']
-                kfr_sd_id = item['kfr_sd_id']
+                kfr_id = str(item['kfr_id'])
+                kfr_sd_id = str(item['kfr_sd_id'])
 
         print(week, "有", available_ticket, "张票")
         return available_ticket, kfr_id, kfr_sd_id
 
 
-    def submit_muplit_tickets(self):
+    def submit_muplit_tickets(self, kfr_id, kfr_sd_id, df, yzm):
         # 添加随行成人
         url = "https://weather.121.com.cn/szqx/api/twt/kfr/gryy/save.do"
         params = {
@@ -90,35 +95,90 @@ class TianWenTai:
             "token": self.token,
             "tokenId": self.tokenId
         }
+        renshu = len(df)
+        # 随行人生
+        entourageCount = str(renshu - 1)
         data = {
             "dyEndDate": "",
             "isTYXY": "no",
-            "name": "牛柏寒",
+            "name": str(df['name'][0]),
             "cardType": "1",
-            "cardNumber": "411024199308248600",
-            "sex": "0",
-            "mobile": "18566660591",
+            "cardNumber": str(df['id'][0]),
+            "sex": str(df['sex'][0]),
+            "mobile": str(df['phone'][0]),
             "carNumber": "",
-            "entourageCount": "2",
+            "entourageCount": str(entourageCount),
             "nonage": "0",
-            "kfrSdId": "100220",  # 预约的时间，在上一个函数提取
-            "kfrId": "201763",   # 预约的时间，在上一个函数提取
+            "kfrSdId": kfr_sd_id,  # 预约的时间，在上一个函数提取
+            "kfrId": kfr_id,   # 预约的时间，在上一个函数提取
             "isDydptx": "0",
-            "name1": "徐之昊",
-            "cardType1": "1",   # type 1 为身份证
-            "cardNumber1": "430223200008017213",
-            "sex1": "0",  # 0 为男 1为女
-            "name2": "区小瑜",
-            "cardType2": "1",
-            "cardNumber2": "440684200011281521",
-            "sex2": "0",
-            "yzm": "ih8i9e"
+            # "yzm": "ih8i9e"  # 验证码
+            "yzm": str(yzm)  # 验证码
         }
+        if entourageCount == '1':
+            data["name1"] = df['name'][1]
+            data["cardType1"] = "1"
+            data["cardNumber1"] = str(df['id'][1])
+            data["sex1"] = str(df['sex'][1])
+        elif entourageCount == '2':
+            data["name1"] = df['name'][1]
+            data["cardType1"] = "1"
+            data["cardNumber1"] = str(df['id'][1])
+            data["sex1"] = str(df['sex'][1])
+            data["name2"] = df['name'][2]
+            data["cardType2"] = "1"
+            data["cardNumber2"] = str(df['id'][2])
+            data["sex2"] = str(df['id'][2])
+        elif entourageCount == '3':
+            data["name1"] = df['name'][1]
+            data["cardType1"] = "1"
+            data["cardNumber1"] = str(df['id'][1])
+            data["sex1"] = str(df['sex'][1])
+            data["name2"] = df['name'][2]
+            data["cardType2"] = "1"
+            data["cardNumber2"] = str(df['id'][2])
+            data["sex2"] = str(df['sex'][2])
+            data["name3"] = df['name'][3]
+            data["cardType3"] = "1"
+            data["cardNumber3"] = str(df['id'][3])
+            data["sex3"] = str(df['sex'][3])
+        ic(data)
+
+
+
+
+        
+
+        # data = {
+        #     "dyEndDate": "",
+        #     "isTYXY": "no",
+        #     "name": "牛柏寒",
+        #     "cardType": "1",
+        #     "cardNumber": "411024199308248600",
+        #     "sex": "0",
+        #     "mobile": "18566660591",
+        #     "carNumber": "",
+        #     "entourageCount": entourageCount,
+        #     "nonage": "0",
+        #     "kfrSdId": kfr_sd_id,  # 预约的时间，在上一个函数提取
+        #     "kfrId": kfr_id,   # 预约的时间，在上一个函数提取
+        #     "isDydptx": "0",
+        #     "name1": "徐之昊",
+        #     "cardType1": "1",   # type 1 为身份证
+        #     "cardNumber1": "430223200008017213",
+        #     "sex1": "0",  # 0 为男 1为女
+        #     "name2": "区小瑜",
+        #     "cardType2": "1",
+        #     "cardNumber2": "440684200011281521",
+        #     "sex2": "0",
+        #     "yzm": "ih8i9e"
+        # }
         response = self.session.post(url, params=params, data=data).json()
-        print(response['msg'])
+        print(response)
+        return response
 
 
-    def submit_ticket(self):
+    def submit_ticket(self, kfr_id, kfr_sd_id, df, yzm):
         # 单个人预约
         url = "https://weather.121.com.cn/szqx/api/twt/kfr/gryy/save.do"
         params = {
@@ -131,28 +191,68 @@ class TianWenTai:
         data = {
             "dyEndDate": "",
             "isTYXY": "no",
-            "name": "牛柏寒",
+            "name": str(df['name'][0]),
             "cardType": "1",
-            "cardNumber": "411024199308248600",
-            "sex": "0",
-            "mobile": "18566660591",
+            "cardNumber": str(df['id'][0]),
+            "sex": str(df['sex'][0]),
+            "mobile": str(df['phone'][0]),
             "carNumber": "",
             "entourageCount": "0",
             "nonage": "0",
-            "kfrSdId": "100220",
-            "kfrId": "201764",
-            "isDydptx": "0"
+            "kfrSdId": kfr_sd_id,
+            "kfrId": kfr_id,
+            "isDydptx": "0",
+            "yzm": str(yzm)
         }
+        print(data)
 
         response = self.session.post(url, params=params, data=data).json()
+        print(response)
+        return response
 
-        print(response.text)
+    def yzm_pass(self):
+        url = "https://weather.121.com.cn/szqx/api/twt/kfr/gryy/code.do"
+        params = {
+        "source": "wx",
+        "wxuser": self.wxuser,
+        "t": str(int(time.time() * 1000))
+    }
+        response = self.session.get(url, params=params).content
+        # print(response)
+        with open('./yzm.png', 'wb') as f:
+            f.write(response)
+        # with open("./yzm.png", 'rb') as f:
+        #     image = f.read()
+        ocr = ddddocr.DdddOcr(beta=True)
+        res = ocr.classification(response)
+
+        print(res) 
+        return res
+
+
+
 
 
 if __name__ == "__main__":
-    twt = TianWenTai()
+    df = read_file()
+    twt = TianWenTai(df['week'][0], df['pmAm'][0])
     data = twt.get_tickets_info()
     available_ticket, kfr_id, kfr_sd_id = twt.Parse_data(data, twt.week)
+    flower_df = create_flower_data(4, df, twt.week, twt.pmAm)
+    if len(flower_df) == 1:
+        res = twt.submit_ticket(kfr_id, kfr_sd_id, flower_df, '')
+        if res['code'] == 1002:
+            yzm = twt.yzm_pass()
+            res = twt.submit_ticket(kfr_id, kfr_sd_id, flower_df, yzm)
+
+
+    else:
+        res = twt.submit_muplit_tickets(kfr_id, kfr_sd_id, flower_df, '')
+        if res['code'] == 1002:
+            yzm = twt.yzm_pass()
+            res = twt.submit_muplit_tickets(kfr_id, kfr_sd_id, flower_df, yzm)
+
+    
 
 
 """
