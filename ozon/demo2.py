@@ -1,5 +1,4 @@
 # encoding='utf-8
-
 # @Time: 2023-12-30
 # @File: %
 #!/usr/bin/env
@@ -11,6 +10,7 @@ import os
 import json
 from parseData import ParseData
 from parseData import *
+import re
 
 
 class Ozon_Spider:
@@ -35,47 +35,70 @@ class Ozon_Spider:
     def Get_cookies(self):
         response = requests.get('https://www.ozon.ru/abt/result',
                                 impersonate="chrome110", headers=self.headers)
+        # 这种方式获取的cookies 需要科学
         cookies = response.cookies
         print(cookies)
         return cookies
 
     def searchResultsV2(self, cookies, searh_text, page):
+        # params = {
+        #     'from_global': 'true',
+        #     'page': page,
+        #     'text': searh_text,
+        #     # "tf_state": "RugZQyjFuYDNcKEefNQm-fpVv4VeHVcrEFZmfuKBQyIKO1cx"
+        # }
         params = {
-            # 'from_global': 'true',
+            'category_was_predicted': 'true',
+            'deny_category_prediction': 'true',
+            'from_global': 'true',
             'page': page,
             'text': searh_text,
+            # 'tf_state': 'e3EYXzH7HAcMY9i_BLVlQFgptMXaYbH2X5vUE_LZLbdeYKCP',
         }
-        response = requests.get('https://www.ozon.ru/search/', params=params,
-                                cookies=cookies, headers=self.headers, impersonate="chrome110")
-        #write to file
-        # with open('ozon.txt', 'w', encoding='utf-8') as f:
-        #     f.write(response.text)
+        if page == 1:
+            response = requests.get('https://www.ozon.ru/search/', params=params,
+                                    cookies=cookies, headers=self.headers, impersonate="chrome110",
+                                    )
+            # write to file
+            # with open('ozon.html', 'w', encoding='utf-8') as f:
+            #     f.write(response.text)
+            try:
+                self.tf_state = re.search(r'tf_state=([^"]+)', response.text).group(1)
+                ic(self.tf_state)
+            except Exception as e:
+                self.tf_state = ''
+
+        elif page > 1:
+            ic(page, "大于1")
+            params['tf_state'] = self.tf_state
+            ic(params)
+            response = requests.get('https://www.ozon.ru/search/', params=params,
+                                    cookies=cookies, headers=self.headers, impersonate="chrome110",
+                                    )
+            # write to file
+            with open('ozon.html', 'w', encoding='utf-8') as f:
+                f.write(response.text)
         html = etree.HTML(response.text)
-        data = html.xpath('//div[contains(@id,"state-searchResultsV2")]/@data-state')
+        data = html.xpath(
+            '//div[contains(@id,"state-searchResultsV2")]/@data-state')
+        ic(len(data))
         # print(data)
         data = json.loads(data[0])
-        # with open('ozon.json', 'w', encoding='utf-8') as f:
-        #     f.write(json.dumps(data, indent=4, ensure_ascii=False))
+
         return data
 
 
-
 if __name__ == '__main__':
-    search_text = 'мыльная бабочка'
+    search_text = 'шик волосогон от засоров,ер'
     ozon = Ozon_Spider()
-    cookies = ozon.Get_cookies()
+    cookies = ozon.Get_cookies()  # 需要科学
     writer = DataWriter('data.csv')
     str_today = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-
     for page in range(1, 8):
         # page = 1
-        time.sleep(1)
+        time.sleep(3)
         data = ozon.searchResultsV2(cookies, search_text, page)
         print(len(data['items']))
         datas = ParseData(data)
         datas.parseData(writer, search_text, str_today, page)
     writer.close()
-
-
-    
-

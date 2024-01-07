@@ -6,6 +6,7 @@
 from icecream import ic
 import os
 import csv
+from mogodb import insert_data_to_mongo
 
 class DataWriter:
     def __init__(self, file_name):
@@ -40,7 +41,7 @@ class ParseData:
         return html.unescape(s)
 
 
-    def parseData(self, writer, search_text, search_date, page):
+    def parseData(self, search_text, search_date, page):
         items = self.data['items']
         # writer = DataWriter('data.csv')
         count = 0
@@ -105,8 +106,9 @@ class ParseData:
 
             data = [ImagUrl, skuId, str(title), url,
                     str(price), str(rating), str(review), str(MaxAddToCart), search_text, search_date, pageRank, Advert, page, count]
+            insert_data_to_mongo('ozon','ozon',data)
 
-            writer.writeData(data)
+            # writer.writeData(data)
         # writer.close()
 
-        return
+        return data

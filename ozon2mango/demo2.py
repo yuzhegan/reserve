@@ -1,5 +1,4 @@
 # encoding='utf-8
-
 # @Time: 2023-12-30
 # @File: %
 #!/usr/bin/env
@@ -11,6 +10,8 @@ import os
 import json
 from parseData import ParseData
 from parseData import *
+import polars as pl
+import random
 
 
 class Ozon_Spider:
@@ -36,44 +37,143 @@ class Ozon_Spider:
         response = requests.get('https://www.ozon.ru/abt/result',
                                 impersonate="chrome110", headers=self.headers).cookies
         cookies = response
+        ic(cookies)
         return cookies
 
     def searchResultsV2(self, cookies, searh_text, page):
         params = {
-            # 'from_global': 'true',
+            'category_was_predicted': 'true',
+            'deny_category_prediction': 'true',
+            'from_global': 'true',
             'page': page,
             'text': searh_text,
+            # 'tf_state': 'e3EYXzH7HAcMY9i_BLVlQFgptMXaYbH2X5vUE_LZLbdeYKCP',
+        }
+        params2 = {
+            'from_global': 'true',
+            'page': page,
+            'text': searh_text,
+            # 'tf_state': '9Zye8loRlfNjrYp09M2p8IFkgmWC-tpWi3enguuQgJCRYY4T',
         }
         response = requests.get('https://www.ozon.ru/search/', params=params,
                                 cookies=cookies, headers=self.headers, impersonate="chrome110")
-        #write to file
+        # write to file
         # with open('ozon.txt', 'w', encoding='utf-8') as f:
         #     f.write(response.text)
         html = etree.HTML(response.text)
-        data = html.xpath('//div[contains(@id,"state-searchResultsV2")]/@data-state')
-        data = json.loads(data[0])
+        data = html.xpath(
+            '//div[contains(@id,"state-searchResultsV2")]/@data-state')
+        ic(len(data))
+        if len(data) == 0:
+            response = requests.get('https://www.ozon.ru/search/', params=params2,
+                                    cookies=cookies, headers=self.headers, impersonate="chrome110")
+
+            html = etree.HTML(response.text)
+            data = html.xpath(
+                '//div[contains(@id,"state-searchResultsV2")]/@data-state')
+            if len(data) == 0:
+                ic("未能获取达第" + str(page) + "页数据")
+                return None
+        # pages = self.getFullPage(html)
+        datas = json.loads(data[0])
+        ic(len(datas))
         # with open('ozon.json', 'w', encoding='utf-8') as f:
         #     f.write(json.dumps(data, indent=4, ensure_ascii=False))
-        return data
+        return datas
 
+    def reGensearchResult(self, searh_text, page):
+        # cookies 失效 重新生成 再去爬数据
+        cookies = self.Get_cookies()
+        try:
+            data = self.searchResultsV2(cookies, searh_text, page)
+        except Exception as e:
+            data = None
+        return data, cookies
 
+    def getFullPage(self, response):
+        pages = len(response.xpath(
+            '//*[@id="layoutPage"]/div[1]/div[2]/div[2]/div[2]/div[5]/div[2]/div/div/div/a')) - 1
+        return pages
+
+from writeLogo import WriteLogo
 
 if __name__ == '__main__':
-    search_text = 'мыльная бабочка'
+    # search_text = 'мыльная бабочка'
+    # 读取错误日志  断点续爬
+    errorlog = WriteLogo("./errlog.txt")  # 
+    if os.path.exists("./errlog.txt"):
+        contents = errorlog.readLog().split("\n")
+        cookies = ozon.Get_cookies()
+        str_today = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        ozon = Ozon_Spider()
+        for content in contents:
+            if content != "":
+                search_text, page = content.split("\t")
+                time.sleep(random.randint(8, 12))
+                try:
+                    data = ozon.searchResultsV2(cookies, search_text, page)
+                except Exception as e:
+                    ic(e)
+                    time.sleep(random.randint(6, 10))
+                    data, cookies = ozon.reGensearchResult(search_text, page)
+                if data:  # 如果获取到数据
+                    print(len(data['items']))
+                    datas = ParseData(data)
+                    items = datas.parseData(search_text, str_today, page)
+                    if len(data['items']) < 36:
+                        ic("下一页没有数据了")
+                        break
+                else:  # 如果未获取到数据
+                    data, cookies = ozon.reGensearchResult(search_text, page)
+                    if data:
+                        print(len(data['items']))
+                        datas = ParseData(data)
+                        items = datas.parseData(search_text, str_today, page)
+                    else:
+                        ic("未能获取到" + str(search_text) + "第" + str(page) + "页数据")
+                        log_txt = search_text + "\t" + str(page) # 写入错误日志
+                        errorlog.writeLogo(search_text, page)
+                        continue
+
+
+    # 从excel中读取搜索词
+    df = pl.read_excel('./客户搜素词.xlsx')
+    df = df.filter(pl.col('openOff') == 'on')
+    # 删除空行
+    search_text_list = df.drop_nulls()['searchTerm'].to_list()
+    ic(len(search_text_list))
     ozon = Ozon_Spider()
     cookies = ozon.Get_cookies()
-    writer = DataWriter('data.csv')
     str_today = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-
-    for page in range(1, 8):
-        # page = 1
-        time.sleep(1)
-        data = ozon.searchResultsV2(cookies, search_text, page)
-        print(len(data['items']))
-        datas = ParseData(data)
-        datas.parseData(writer, search_text, str_today, page)
-    writer.close()
-
-
-    
-
+    for search_text in search_text_list:
+        time.sleep(random.randint(6, 10))
+        ic(search_text)
+        for page in range(1, 8):
+            time.sleep(random.randint(8, 12))
+            try:
+                data = ozon.searchResultsV2(cookies, search_text, page)
+            except Exception as e:
+                ic(e)
+                time.sleep(random.randint(6, 10))
+                data, cookies = ozon.reGensearchResult(search_text, page)
+            if data:  # 如果获取到数据
+                print(len(data['items']))
+                datas = ParseData(data)
+                items = datas.parseData(search_text, str_today, page)
+                if len(data['items']) < 36:
+                    ic("下一页没有数据了")
+                    break
+            else:  # 如果未获取到数据
+                data, cookies = ozon.reGensearchResult(search_text, page)
+                if data:
+                    print(len(data['items']))
+                    datas = ParseData(data)
+                    items = datas.parseData(search_text, str_today, page)
+                else:
+                    ic("未能获取到" + str(search_text) + "第" + str(page) + "页数据")
+                    log_txt = search_text + "\t" + str(page) # 写入错误日志
+                    errorlog.writeLogo(log_txt)
+                    continue
+            # ic(items)
+        # writer.close()
+        # writer.close()

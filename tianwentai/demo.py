@@ -31,7 +31,7 @@ class TianWenTai:
         }
         self.session = requests.session()
         self.session.headers.update(self.headers)
-        self.wxuser = '308afb72731f4f2ca1822233e2c0d06e'
+        self.wxuser = 'e4c0e967624146e185f9f2d48d4fadf4'
         self.token, self.tokenId = self.get_token()
         # self.week = '星期五'
         self.week = week
@@ -42,9 +42,9 @@ class TianWenTai:
         url = "https://weather.121.com.cn/szqx/api/token.js"
         response = self.session.get(url).text
         token = re.search('win\.szqbl\.token="([^"]+)"', response).group(1)
-        print(token)
+        # print(token)
         tokenId = re.search('win\.szqbl\.tokenId="([^"]+)"', response).group(1)
-        print(tokenId)
+        # print(tokenId)
         return token, tokenId
 
     def get_tickets_info(self):
@@ -56,11 +56,22 @@ class TianWenTai:
             "tokenId": self.tokenId
         }
         data = {
-            "yzm": ""
+            "yzm": "" 
         }
-        response = self.session.post(url, params=params, data=data).json()
+        try:
+            response = self.session.post(url, params=params, data=data).json()
+        except:
+            print("获取票务信息失败")
+            return None
         if response["code"] == 0:
             return response["data"]
+        elif response["code"] == 1002:  #促发验证码
+            time.sleep(2)
+            yzm = twt.yzm_pass()
+            data["yzm"] = yzm
+            response = self.session.post(url, params=params, data=data).json()
+            if response["code"] == 0:
+                return response["data"]
         else:
             # TODO:  <03-01-24, getcookies> #
             return None
@@ -77,12 +88,16 @@ class TianWenTai:
         # 判断是否有余票以及有几张
         ticket_nums = data["kfrs"][ture_key]   # 得到一个上午和下午的列表
         for item in ticket_nums:
-            if self.pmAm in item['name']:
-                available_ticket = int(item['maxNum']) - int(item['curNum'])
+            # if self.pmAm in item['name']:
+            available_ticket = int(item['maxNum']) - int(item['curNum'])
+            if available_ticket > 0:
                 kfr_id = str(item['kfr_id'])
                 kfr_sd_id = str(item['kfr_sd_id'])
+            else:
+                kfr_id = ''
+                kfr_sd_id = ''
 
-        print(week, "有", available_ticket, "张票")
+        print(week, "有", available_ticket, "张票", "kfr_id", kfr_id,  'kfr_sd_id', kfr_sd_id)
         return available_ticket, kfr_id, kfr_sd_id
 
 
@@ -219,8 +234,8 @@ class TianWenTai:
     }
         response = self.session.get(url, params=params).content
         # print(response)
-        with open('./yzm.png', 'wb') as f:
-            f.write(response)
+        # with open('./yzm.png', 'wb') as f:
+        #     f.write(response)
         # with open("./yzm.png", 'rb') as f:
         #     image = f.read()
         ocr = ddddocr.DdddOcr(beta=True)
@@ -234,23 +249,42 @@ class TianWenTai:
 
 
 if __name__ == "__main__":
-    df = read_file()
-    twt = TianWenTai(df['week'][0], df['pmAm'][0])
-    data = twt.get_tickets_info()
-    available_ticket, kfr_id, kfr_sd_id = twt.Parse_data(data, twt.week)
-    flower_df = create_flower_data(4, df, twt.week, twt.pmAm)
-    if len(flower_df) == 1:
-        res = twt.submit_ticket(kfr_id, kfr_sd_id, flower_df, '')
-        if res['code'] == 1002:
-            yzm = twt.yzm_pass()
-            res = twt.submit_ticket(kfr_id, kfr_sd_id, flower_df, yzm)
+    df = read_file("./tianwentai/setttings.xlsx")
+    while True:
+        flowered_df = read_file("./tianwentai/flowered.csv")
+        df = get_buji(df, flowered_df)  # 去除已经预约过的人信息
+        twt = TianWenTai(df['week'][0], df['pmAm'][0])
+        data = twt.get_tickets_info()
+        available_ticket, kfr_id, kfr_sd_id = twt.Parse_data(data, twt.week)
+        if available_ticket > 0: # 有票
+            flower_df = create_flower_data(available_ticket, df, twt.week, twt.pmAm)
+            if len(flower_df) == 1:
+                try:
+                    res = twt.submit_ticket(kfr_id, kfr_sd_id, flower_df, '')
+                    if res['code'] == 1002:
+                        yzm = twt.yzm_pass()
+                        time.sleep(1)
+                        res = twt.submit_ticket(kfr_id, kfr_sd_id, flower_df, yzm)
+                except:
+                    continue
+            else:
+                try:
+                    res = twt.submit_muplit_tickets(kfr_id, kfr_sd_id, flower_df, '')
+                    if res['code'] == 1002:
+                        yzm = twt.yzm_pass()
+                        time.sleep(1)
+                        res = twt.submit_muplit_tickets(kfr_id, kfr_sd_id, flower_df, yzm)
+                except:
+                    continue
+            # append flower_df to flowered.csv
+            pandas_df = flower_df.to_pandas()
+            pandas_df.to_csv("./tianwentai/flowered.csv", mode='a', header=False, index=False)
 
 
-    else:
-        res = twt.submit_muplit_tickets(kfr_id, kfr_sd_id, flower_df, '')
-        if res['code'] == 1002:
-            yzm = twt.yzm_pass()
-            res = twt.submit_muplit_tickets(kfr_id, kfr_sd_id, flower_df, yzm)
+        time.sleep(1)
+
+        if len(df) == len(flowered_df):  # 预约完成的人数和设置人数相等
+            break
 
     
 

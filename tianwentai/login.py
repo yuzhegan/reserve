@@ -35,7 +35,7 @@ headers = {
 url = "https://weather.121.com.cn/szqx/api/wx.do"
 params = {
     "client": "sztw",
-    "code": "061noG0w3HYc023Kjq0w3UECBg4noG0x",
+    "code": "031Wjb1w3FntZ13Dzh2w3rxKKS3Wjb1R",
     "redirect_uri": "https://weather.121.com.cn/sztwt/#/gr"
 }
 response = requests.get(url, headers=headers, params=params)
